@@ -1,0 +1,99 @@
+@use 'sass:math';
+
+$font-size-ratio: 1.2;
+$base-font-size: math.div(18, 16) * 1rem;
+
+// https://gist.github.com/certainlyakey/e9c0d8f5c87ff47e3d5b?permalink_comment_id=3458258#gistcomment-3458258
+@function encodecolor($string) {
+  @if type-of($string) == 'color' and str-index(#{$string}, '#') == 1 {
+    $hex: str-slice(ie-hex-str($string), 4);
+    $string: unquote('#{$hex}');
+
+    @return '%23' + $string;
+  }
+
+  @return $string;
+}
+
+@function play-icon($color: white) {
+  @return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'><path fill='#{encodecolor($color)}' d='M361 215C375.3 223.8 384 239.3 384 256C384 272.7 375.3 288.2 361 296.1L73.03 472.1C58.21 482 39.66 482.4 24.52 473.9C9.377 465.4 0 449.4 0 432V80C0 62.64 9.377 46.63 24.52 38.13C39.66 29.64 58.21 29.99 73.03 39.04L361 215z'/></svg>";
+}
+
+@function pause-icon($color: white) {
+  @return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'><path fill='#{encodecolor($color)}' d='M272 63.1l-32 0c-26.51 0-48 21.49-48 47.1v288c0 26.51 21.49 48 48 48L272 448c26.51 0 48-21.49 48-48v-288C320 85.49 298.5 63.1 272 63.1zM80 63.1l-32 0c-26.51 0-48 21.49-48 48v288C0 426.5 21.49 448 48 448l32 0c26.51 0 48-21.49 48-48v-288C128 85.49 106.5 63.1 80 63.1z'/></svg>";
+}
+
+@function reset-icon($color: white) {
+  @return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='#{encodecolor($color)}' d='M480 256c0 123.4-100.5 223.9-223.9 223.9c-48.84 0-95.17-15.58-134.2-44.86c-14.12-10.59-16.97-30.66-6.375-44.81c10.59-14.12 30.62-16.94 44.81-6.375c27.84 20.91 61 31.94 95.88 31.94C344.3 415.8 416 344.1 416 256s-71.69-159.8-159.8-159.8c-37.46 0-73.09 13.49-101.3 36.64l45.12 45.14c17.01 17.02 4.955 46.1-19.1 46.1H35.17C24.58 224.1 16 215.5 16 204.9V59.04c0-24.04 29.07-36.08 46.07-19.07l47.6 47.63C149.9 52.71 201.5 32.11 256.1 32.11C379.5 32.11 480 132.6 480 256z'/></svg>";
+}
+
+@function info-circle-icon($color: white) {
+  @return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='#{encodecolor($color)}' d='M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z'/></svg>";
+}
+
+// @ https://css-tricks.com/snippets/sass/power-function/
+@function pow($number, $exponent) {
+  $value: 1;
+
+  @if $exponent > 0 {
+    @for $i from 1 through $exponent {
+      $value: $value * $number;
+    }
+  } @else if $exponent < 0 {
+    @for $i from 1 through -$exponent {
+      $value: math.div($value, $number);
+    }
+  }
+
+  @return $value;
+}
+
+@mixin fs($s: 1, $linha: 1.35, $imp: false) {
+  // bigger fonts tend to ask for smaller line-heights
+  // (which can be overriden by raising the $linha parameter
+  $div: pow(1.04, $s);
+  @if $imp == false {
+    font-size: $base-font-size * pow($font-size-ratio, $s);
+    line-height: math.div(
+      $base-font-size * pow($font-size-ratio, $s) * $linha,
+      $div
+    );
+  } @else {
+    font-size: $base-font-size * pow($font-size-ratio, $s) !important;
+    line-height: math.div(
+      $base-font-size * pow($font-size-ratio, $s) * $linha,
+      $div
+    ) !important;
+  }
+}
+
+@mixin box_shadow($level) {
+  $r: 0.4;
+  @if $level == 1 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12 * $r),
+      0 1px 2px rgba(0, 0, 0, 0.24 * $r);
+  } @else if $level == 2 {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16 * $r),
+      0 3px 6px rgba(0, 0, 0, 0.23 * $r);
+  } @else if $level == 3 {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19 * $r),
+      0 6px 6px rgba(0, 0, 0, 0.23 * $r);
+  } @else if $level == 4 {
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25 * $r),
+      0 10px 10px rgba(0, 0, 0, 0.22 * $r);
+  } @else if $level == 5 {
+    box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3 * $r),
+      0 15px 12px rgba(0, 0, 0, 0.22 * $r);
+  }
+}
+
+@mixin faux-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+@mixin sizer {
+  max-width: 720px; // there can be no yuge divs!
+  min-width: #{min(720px, 100vw - 4rem)};
+  width: 100%;
+}
