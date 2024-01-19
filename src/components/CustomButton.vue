@@ -19,10 +19,10 @@
 
 <script>
 export default {
-  name: 'CustomButton',
+  name: "CustomButton",
   props: {
-    href: { type: String, default: '' },
-    size: { type: String, default: 'large' },
+    href: { type: String, default: "" },
+    size: { type: String, default: "large" },
     hasBorder: { type: Boolean, default: false },
     disabledButton: {
       type: Boolean,
@@ -31,15 +31,15 @@ export default {
   },
   methods: {
     butClick: function () {
-      this.$emit('clicked');
+      this.$emit("clicked");
     },
   },
 };
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/_variables.scss';
-@import '@/assets/styles/_mixins.scss';
+@import "@/assets/styles/_variables.scss";
+@import "@/assets/styles/_mixins.scss";
 
 .large a {
   padding: 0.9rem 2rem 1rem;
