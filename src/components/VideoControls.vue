@@ -1,57 +1,22 @@
 <template>
   <div id="video-controls">
-    <button
-      id="general-play"
-      @click="$emit('general-play')"
-      class="icon-bg"
-      :class="generalPlayClass"
-    >
-      &nbsp;
-    </button>
-    <button
-      id="selection-play"
-      @click="$emit('selection-play')"
-      :class="{ pause: playingSelection, play: !playingSelection }"
-    >
-      Play selection
-    </button>
-
-    <button @click="uploadVideo" class="upload-button">
-      <svg
-        fill="#000000"
-        height="24px"
-        width="24px"
-        viewBox="0 0 330 330"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M325.606,229.393l-150.004-150C172.79,76.58,168.974,75,164.996,75c-3.979,0-7.794,1.581-10.607,4.394
-            l-149.996,150c-5.858,5.858-5.858,15.355,0,21.213c5.857,5.857,15.355,5.858,21.213,0l139.39-139.393l139.397,139.393
-            C307.322,253.536,311.161,255,315,255c3.839,0,7.678-1.464,10.607-4.394C331.464,244.748,331.464,235.251,325.606,229.393z"
-        />
+    <button id="general-play" @click="$emit('general-play')" class="button icon-bg" :class="generalPlayClass">&nbsp;</button>
+    <button id="selection-play" @click="$emit('selection-play')" class="button" :class="{ pause: playingSelection, play: !playingSelection }">Play selection</button>
+    <button @click="uploadVideo" class="button upload-button">
+      <svg fill="currentColor" height="24px" width="24px" viewBox="0 0 330 330" xmlns="http://www.w3.org/2000/svg">
+        <path d="M325.606,229.393l-150.004-150C172.79,76.58,168.974,75,164.996,75c-3.979,0-7.794,1.581-10.607,4.394 l-149.996,150c-5.858,5.858-5.858,15.355,0,21.213c5.857,5.857,15.355,5.858,21.213,0l139.39-139.393l139.397,139.393 C307.322,253.536,311.161,255,315,255c3.839,0,7.678-1.464,10.607-4.394C331.464,244.748,331.464,235.251,325.606,229.393z"/>
       </svg>
       Upload Video
     </button>
-
-    <button @click="toggleRecording" class="record-button">
-      {{ recording ? "Stop Recording" : "Start Recording" }}
-    </button>
-
+    <button @click="toggleRecording" class="button record-button">{{ recording ? "Stop Recording" : "Start Recording" }}</button>
     <p id="elapsed-time">
-      <span class="hours" :class="{ 'less-than-an-hour': duration < 3600 }">{{
-        formattedTime.hours
-      }}</span
-      ><span class="colon">:</span
-      ><span class="minutes" :class="{ 'less-than-a-minute': duration < 60 }">{{
-        formattedTime.minutes
-      }}</span
-      ><span class="colon">:</span
-      ><span class="seconds">{{ formattedTime.seconds }}</span
-      ><span class="period">.</span
-      ><span class="deciseconds">{{ formattedTime.deciseconds }}</span>
+      <span class="hours" :class="{ 'less-than-an-hour': duration < 3600 }">{{ formattedTime.hours }}</span>:<span class="minutes" :class="{ 'less-than-a-minute': duration < 60 }">{{ formattedTime.minutes }}</span>:<span class="seconds">{{ formattedTime.seconds }}</span>.<span class="deciseconds">{{ formattedTime.deciseconds }}</span>
     </p>
   </div>
 </template>
+
+
+
 
 <script>
 export default {
@@ -107,37 +72,52 @@ export default {
   },
   methods: {
     async toggleRecording() {
+      
       if (this.recording) {
         this.stopRecording();
       } else {
         await this.startRecording();
       }
     },
-
     async startRecording() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         this.mediaRecorder = new MediaRecorder(stream);
         this.mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
             this.recordedChunks.push(event.data);
           }
         };
+        this.$emit('stream-obtained', stream);
+
         this.mediaRecorder.start();
         this.recording = true;
+
+        // Attach the stream to the video element
+        this.$refs.liveVideo.srcObject = stream;
+        this.$refs.liveVideo.play(); // This might be redundant due to autoplay
       } catch (err) {
         console.error("Error accessing camera:", err);
+      }
+    },
+    async handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type.startsWith('video/')) {
+        // Create a URL for the video file
+        const videoUrl = URL.createObjectURL(file);
+        // Emit an event with the video URL
+        this.$emit('video-uploaded', videoUrl);
+      } else {
+        console.error('Please upload a valid video file.');
       }
     },
 
     stopRecording() {
       if (this.mediaRecorder) {
         this.mediaRecorder.stop();
+        this.mediaRecorder.stream.getTracks().forEach(track => track.stop()); // Stop the camera stream
         this.mediaRecorder = null;
         this.recording = false;
-        this.handleRecordedData();
       }
     },
 
@@ -153,42 +133,77 @@ export default {
 };
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
 <style lang="scss" scoped>
-@import "@/assets/styles/_variables.scss";
+@import "@/assets/styles/_variables.scss"; // Ensure this import path is correct
 @import "@/assets/styles/_mixins.scss";
 
 #video-controls {
   display: flex;
-  align-items: center; // Align items vertically
-  justify-content: space-between; // Space out items
-  background-color: black;
+  align-items: center;
+  justify-content: start;
   padding: 0 12px;
-  width: 100%;
-  height: 60px;
+
 }
 
 #elapsed-time {
   @include fs(1);
   text-align: right;
   color: white;
-  // Flex item alignment is handled by the container
   span {
-    width: 2.5ch;
+    width: auto;
     display: inline-block;
     text-align: center;
-    &.colon,
-    &.period {
-      width: 0.4ch;
-    }
-    &.deciseconds {
-      width: 1.25ch;
-    }
-    &.colon,
-    &.less-than-an-hour,
-    &.less-than-a-minute {
-      color: #666;
-    }
+    &.colon, &.period { display: inline; }
+    &.deciseconds, &.less-than-an-hour, &.less-than-a-minute { color: #666; }
   }
+}
+
+.button {
+  padding: 10px 15px;
+
+  margin-right: 8px;
+  background-color: #333;
+  color: white;
+  border-width: 1px;
+  border-color: yellow;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background-color 0.2s ease;
+  &:hover {
+    background-color: darken(#333, 10%);
+    background-color: $accent;
+      border-color: $accent;
+      color: #333;
+  }
+  
+  
+  svg {
+    fill: currentColor;
+  }
+}
+
+.icon-bg {
+  background-size: 16px 16px;
+  background-position: center;
+}
+
+.upload-button svg, .record-button svg {
+  margin-right: 5px;
 }
 
 button {
@@ -207,6 +222,7 @@ button {
       background-image: url(play-icon());
       &:hover {
         background-image: url(play-icon(#666));
+        border-color: white;
       }
     }
     &.pause {
@@ -227,25 +243,21 @@ button {
     }
   }
   &#selection-play {
-    background-color: #333;
-    border-color: mix(#333, $accent);
-    color: $accent;
     &:hover {
       background-color: $accent;
       border-color: $accent;
       color: #333;
     }
   }
+
+
 }
+
 .upload-button {
-  padding: 0.15rem;
-  font-size: 0.85rem;
-  color: black;
-  height: 34px;
 
   svg {
-    height: 26px;
-    width: 20px;
+    height: 24px;
+    width: 18px;
   }
 
   display: flex;
@@ -259,6 +271,7 @@ button {
 
   // Remove any extra space around the content
   white-space: nowrap;
+  
 }
 .icon-bg {
   background-repeat: no-repeat;

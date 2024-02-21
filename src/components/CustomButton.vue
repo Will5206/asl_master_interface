@@ -1,7 +1,7 @@
 <template>
   <div :class="size">
     <div
-      id="but-container"
+      id="but-cont"
       @click="butClick()"
       :class="{ disabled: disabledButton }"
     >
@@ -31,7 +31,10 @@ export default {
   },
   methods: {
     butClick: function () {
-      this.$emit("clicked");
+      if (!this.disabledButton) {
+        this.$emit("clicked");
+      }
+
     },
   },
 };
@@ -82,6 +85,7 @@ a {
 
 #but-container {
   float: right;
+
 }
 
 .disabled {
